@@ -1,0 +1,67 @@
+= API Key Policy
+
+ifdef::env-github[]
+image:https://ci.gravitee.io/buildStatus/icon?job=gravitee-io/gravitee-policy-apikey/master["Build status", link="https://ci.gravitee.io/job/gravitee-io/job/gravitee-policy-apikey/"]
+image:https://badges.gitter.im/Join Chat.svg["Gitter", link="https://gitter.im/gravitee-io/gravitee-io?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge"]
+endif::[]
+
+== Phase
+
+[cols="2*", options="header"]
+|===
+^|onRequest
+^|onResponse
+
+^.^| X
+^.^|
+
+|===
+
+== Description
+
+This policy uses the keychain returned data and prepare the request before going to the target.
+
+This policy covers all header injection scenarios:
+
+- API key
+- AppKey + AppSecret
+- BasicAuth
+
+This must be chained after keychain policy.
+//
+//== Configuration
+//
+//=== Policy level
+//You can configure the policy with the following options:
+//
+//|===
+//|Property |Required |Description |Type |Default
+//
+//.^|propagateApiKey
+//^.^|-
+//|Propagate API Key to upstream API
+//^.^|boolean
+//^.^|_false_
+//
+//|===
+//
+//
+//[source, json]
+//.Configuration
+//----
+//"api-key": {
+//  "propagateApiKey": false
+//}
+//----
+//=== Gateway level
+//It is also possible to customize the `X-Gravitee-Api-Key` header or `api-key` query parameter.
+//This can be done from gateway configuration file (`gravitee.yml`):
+//
+//[source, yaml]
+//.Configuration
+//----
+//policy:
+//  api-key:
+//    header: My-Custom-Api-Key
+//    param: custom-api-key
+//----
