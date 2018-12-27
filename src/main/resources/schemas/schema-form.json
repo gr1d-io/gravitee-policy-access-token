@@ -6,6 +6,11 @@
       "title": "Access Token URL",
       "description": "URL for requesting an access token.",
       "type" : "string"
+    },
+    "headerKey" : {
+      "title": "Authorization header key",
+      "description": "Key used in the header used by the Access Token (default: Authorization).",
+      "type" : "string"
     }
   }
 }

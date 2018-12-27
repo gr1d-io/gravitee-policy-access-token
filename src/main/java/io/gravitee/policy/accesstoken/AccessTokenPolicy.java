@@ -117,13 +117,17 @@ public class AccessTokenPolicy
 
     private void injectAccessToken(Request request, AccessToken accessToken) 
     {
+        String headerKey = this.policyConfiguration.getHeaderKey();
+        if (headerKey == null || headerKey.isEmpty()) {
+            headerKey = AccessTokenPolicy.AUTHORIZATION_KEY;
+        }
         switch(accessToken.getTokenType())
         {
             case BEARER:
-                request.headers().add(AccessTokenPolicy.AUTHORIZATION_KEY, String.format("Bearer %s", accessToken.getAccessToken()));
+                request.headers().add(headerKey, String.format("Bearer %s", accessToken.getAccessToken()));
                 break;
             case ACCESS_TOKEN:
-                request.headers().add(AccessTokenPolicy.AUTHORIZATION_KEY, accessToken.getAccessToken());
+                request.headers().add(headerKey, accessToken.getAccessToken());
                 break;
             default:
                 break;

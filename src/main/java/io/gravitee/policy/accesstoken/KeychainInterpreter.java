@@ -21,8 +21,14 @@ import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
 public class KeychainInterpreter
 {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AccessTokenPolicy.class);
+
     private static final String METHOD_KEY = "method";
     private static final String BASICAUTH_METHOD = "basicauth";
     private static final String BASICAUTH_USER_KEY = "user";
@@ -77,6 +83,9 @@ public class KeychainInterpreter
         String encodedHeader = java.util.Base64.getEncoder().encodeToString(userPass.getBytes());
 
         this.headers.put("Authorization", String.format("Basic %s", encodedHeader));
+
+        KeychainInterpreter.LOGGER.info(String.format("[Keychain->AccessToken] ADD BASIC AUTH: %s:%s", user, pass));
+
     }
 
     private void addHeader(JSONObject apiData)
@@ -85,10 +94,12 @@ public class KeychainInterpreter
         String value = apiData.getString(KeychainInterpreter.HEADER_VALUE_KEY);
 
         this.headers.put(key, value);
+        KeychainInterpreter.LOGGER.info(String.format("[Keychain->AccessToken] ADD HEADER: %s:%s", key, value));
     }
 
     private void addBody(JSONObject apiData)
     {
         this.body = apiData.getString(KeychainInterpreter.BODY_KEY);
+        KeychainInterpreter.LOGGER.info(String.format("[Keychain->AccessToken] ADD BODY: %s", body));
     }
 }
