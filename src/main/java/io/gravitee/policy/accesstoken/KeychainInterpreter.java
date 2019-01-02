@@ -38,8 +38,8 @@ public class KeychainInterpreter
     private static final String HEADER_METHOD = "header";
     private static final String HEADER_KEY_KEY = "headerkey";
     private static final String HEADER_VALUE_KEY = "headervalue";
-    private static final String QUERY_METHOD = "method";
-    private static final String QUERY_KEY = "method";
+    private static final String QUERY_METHOD = "query";
+    private static final String QUERY_KEY = "query";
 
     private final JSONArray apiList;
     private HashMap<String, String> headers = new HashMap<String, String>();
@@ -107,12 +107,13 @@ public class KeychainInterpreter
     private void addBody(JSONObject apiData)
     {
         this.body = apiData.getString(KeychainInterpreter.BODY_KEY);
-        KeychainInterpreter.LOGGER.info(String.format("[Keychain->AccessToken] ADD BODY: %s", body));
+        KeychainInterpreter.LOGGER.info(String.format("[Keychain->AccessToken] ADD BODY: %s", this.getBody()));
     }
 
     private void addQuery(JSONObject apiData)
     {
         this.query = apiData.getString(KeychainInterpreter.QUERY_KEY);
+        KeychainInterpreter.LOGGER.info(String.format("[Keychain->AccessToken] ADD QUERY: %s", this.getQuery()));
     }
 
     public String applyQuery(String url)
@@ -127,6 +128,7 @@ public class KeychainInterpreter
             {
                 url += String.format("?%s", this.getQuery());
             }
+            KeychainInterpreter.LOGGER.info(String.format("[Keychain->AccessToken] APPLY QUERY: %s", url));
         }
         return url;
     }
