@@ -109,7 +109,7 @@ public class AccessTokenPolicy
     {
         JSONArray apiList = new JSONArray(requestKeychain);            
         KeychainInterpreter interpreter = new KeychainInterpreter(apiList);
-        String url = this.policyConfiguration.getUrl();
+        String url = interpreter.applyQuery(this.policyConfiguration.getUrl());
         String method = "POST";
         AccessTokenRequest accessTokenRequest = new AccessTokenRequest(url, method, interpreter.getHeaders(), interpreter.getBody());
         return accessTokenRequest.getAccessToken();

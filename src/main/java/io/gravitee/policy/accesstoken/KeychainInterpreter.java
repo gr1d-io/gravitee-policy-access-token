@@ -38,13 +38,17 @@ public class KeychainInterpreter
     private static final String HEADER_METHOD = "header";
     private static final String HEADER_KEY_KEY = "headerkey";
     private static final String HEADER_VALUE_KEY = "headervalue";
+    private static final String QUERY_METHOD = "method";
+    private static final String QUERY_KEY = "method";
 
     private final JSONArray apiList;
     private HashMap<String, String> headers = new HashMap<String, String>();
     private String body = "";
+    private String query = "";
 
     public HashMap<String, String> getHeaders() { return this.headers; }
     public String getBody() { return this.body; }
+    public String getQuery() { return this.query; }
 
     public KeychainInterpreter(JSONArray apiList)
     {
@@ -68,6 +72,9 @@ public class KeychainInterpreter
                     break;
                 case KeychainInterpreter.BODY_METHOD:
                     this.addBody(apiData);
+                    break;
+                case KeychainInterpreter.QUERY_METHOD:
+                    this.addQuery(apiData);
                     break;
                 default:
                     break;
@@ -101,5 +108,26 @@ public class KeychainInterpreter
     {
         this.body = apiData.getString(KeychainInterpreter.BODY_KEY);
         KeychainInterpreter.LOGGER.info(String.format("[Keychain->AccessToken] ADD BODY: %s", body));
+    }
+
+    private void addQuery(JSONObject apiData)
+    {
+        this.query = apiData.getString(KeychainInterpreter.QUERY_KEY);
+    }
+
+    public String applyQuery(String url)
+    {
+        if ((this.getQuery() != null) && (this.getQuery().length() > 0))
+        {
+            if (url.indexOf("?") > -1)
+            {
+                url += String.format("&%s", this.getQuery());
+            }
+            else
+            {
+                url += String.format("?%s", this.getQuery());
+            }
+        }
+        return url;
     }
 }
