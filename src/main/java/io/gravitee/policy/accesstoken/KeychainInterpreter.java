@@ -112,7 +112,21 @@ public class KeychainInterpreter
 
     private void addQuery(JSONObject apiData)
     {
-        this.query = apiData.getString(KeychainInterpreter.QUERY_KEY);
+        Map<String, Object> queryMap = new JSONObject(apiData.getString(KeychainInterpreter.QUERY_KEY)).toMap();
+        try
+        {
+            String[] queryItems = new String[queryMap.size()];
+            int i=0;
+            for(Map.Entry<String, Object> entry : queryMap.entrySet())
+            {
+                queryItems[i++] = String.format("%s=%s", entry.getKey(), entry.getValue());
+            }
+            this.query = String.join("&", queryItems);    
+        }
+        catch (Exception e)
+        {
+            KeychainInterpreter.LOGGER.info(String.format("[Keychain->AccessToken] ADD QUERY: ERROR: %s", e.getLocalizedMessage()));
+        }
         KeychainInterpreter.LOGGER.info(String.format("[Keychain->AccessToken] ADD QUERY: %s", this.getQuery()));
     }
 
