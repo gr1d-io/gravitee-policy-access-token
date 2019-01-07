@@ -17,13 +17,13 @@ package io.gravitee.policy.accesstoken;
 import java.util.HashMap;
 import java.util.AbstractMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 public class KeychainInterpreter
 {
@@ -36,20 +36,18 @@ public class KeychainInterpreter
     private static final String BODY_METHOD = "body";
     private static final String BODY_KEY = "body";
     private static final String HEADER_METHOD = "header";
-    private static final String HEADER_KEY_KEY = "headerkey";
-    private static final String HEADER_VALUE_KEY = "headervalue";
     private static final String QUERY_METHOD = "query";
-    private static final String QUERY_KEY = "query";
+    private static final String[] RESERVED_KEYS = {"_Gr1d_appId", "_Gr1d_apiId", "_Gr1d_gw", "_Gr1d_method", "_Gr1d_hash"};
+
 
     private final JSONArray apiList;
     private HashMap<String, String> headers = new HashMap<String, String>();
+    private String queryString = "";
     private String body = "";
-    private String query = "";
 
     public HashMap<String, String> getHeaders() { return this.headers; }
     public String getBody() { return this.body; }
-    public String getQuery() { return this.query; }
-
+    
     public KeychainInterpreter(JSONArray apiList)
     {
         this.apiList = apiList;
@@ -97,11 +95,14 @@ public class KeychainInterpreter
 
     private void addHeader(JSONObject apiData)
     {
-        String key = apiData.getString(KeychainInterpreter.HEADER_KEY_KEY);
-        String value = apiData.getString(KeychainInterpreter.HEADER_VALUE_KEY);
-
-        this.headers.put(key, value);
-        KeychainInterpreter.LOGGER.info(String.format("[Keychain->AccessToken] ADD HEADER: %s:%s", key, value));
+        for(String key : apiData.keySet()) 
+        {
+            if (!KeychainInterpreter.isReservedKey(key)) 
+            {
+                this.headers.put(key, apiData.getString(key));
+            }
+        }
+        KeychainInterpreter.LOGGER.info(String.format("[Keychain->AccessToken] ADD HEADERS."));
     }
 
     private void addBody(JSONObject apiData)
@@ -112,38 +113,40 @@ public class KeychainInterpreter
 
     private void addQuery(JSONObject apiData)
     {
-        Map<String, Object> queryMap = new JSONObject(apiData.getString(KeychainInterpreter.QUERY_KEY)).toMap();
-        try
-        {
-            String[] queryItems = new String[queryMap.size()];
-            int i=0;
-            for(Map.Entry<String, Object> entry : queryMap.entrySet())
-            {
-                queryItems[i++] = String.format("%s=%s", entry.getKey(), entry.getValue());
-            }
-            this.query = String.join("&", queryItems);    
-        }
-        catch (Exception e)
-        {
-            KeychainInterpreter.LOGGER.info(String.format("[Keychain->AccessToken] ADD QUERY: ERROR: %s", e.getLocalizedMessage()));
-        }
-        KeychainInterpreter.LOGGER.info(String.format("[Keychain->AccessToken] ADD QUERY: %s", this.getQuery()));
+        this.queryString = String.join("&", 
+            apiData.toMap().entrySet().stream()
+            .filter(entry -> !KeychainInterpreter.isReservedKey(entry.getKey()))
+            .map(entry -> {
+                return String.format("%s=%s", entry.getKey(), entry.getValue());
+            })
+            .collect(Collectors.toList())
+        );
+
+        KeychainInterpreter.LOGGER.info(String.format("[Keychain->AccessToken] ADD QUERY: %s", this.queryString));
     }
 
     public String applyQuery(String url)
     {
-        if ((this.getQuery() != null) && (this.getQuery().length() > 0))
+        if ((this.queryString != null) && (this.queryString.length() > 0))
         {
             if (url.indexOf("?") > -1)
             {
-                url += String.format("&%s", this.getQuery());
+                url += String.format("&%s", this.queryString);
             }
             else
             {
-                url += String.format("?%s", this.getQuery());
+                url += String.format("?%s", this.queryString);
             }
             KeychainInterpreter.LOGGER.info(String.format("[Keychain->AccessToken] APPLY QUERY: %s", url));
         }
         return url;
+    }
+
+    private static Boolean isReservedKey(String key) {
+        Boolean isReserved = false;
+        for (String reservedKey : KeychainInterpreter.RESERVED_KEYS) {
+            isReserved |= key.equals(reservedKey);
+        }
+        return isReserved;
     }
 }
