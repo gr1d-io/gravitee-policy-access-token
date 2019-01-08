@@ -28,6 +28,20 @@ import javax.net.ssl.HttpsURLConnection;
 import org.json.JSONObject;
 import java.io.OutputStream;
 
+import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpClient;
+import io.vertx.core.http.HttpClientRequest;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
+
+import io.gravitee.policy.api.PolicyChain;
+import io.gravitee.policy.api.PolicyResult;
+import io.gravitee.common.http.HttpStatusCode;
+
+import java.io.StringWriter;
+import java.io.PrintWriter;
 
 public class AccessTokenRequest
 {
@@ -37,61 +51,64 @@ public class AccessTokenRequest
     private static final String EXPIRES_IN_KEY = "expires_in";
 
     private String url;
-    private String method;
     private Map<String, String> headers;
     private String body;
     private byte[] bodyBytes;
 
-    public AccessTokenRequest(String url, String method, Map<String, String> headers, String body) throws UnsupportedEncodingException
+    public AccessTokenRequest(String url, Map<String, String> headers, String body) throws UnsupportedEncodingException
     {
         this.url = url;
-        this.method = method.toUpperCase();
         this.headers = headers;
         this.body = body;
         this.bodyBytes = body.getBytes("UTF-8");
     }
 
-    public String doRequest() throws IOException {
-        URL obj = new URL(this.url);
-        HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
-        con.setRequestMethod(this.method);
-        
-        /* Headers */
-        for(Map.Entry<String, String> entry : this.headers.entrySet())
-        {
-            con.addRequestProperty(entry.getKey(), entry.getValue());
+    public void doRequest(Handler<AsyncResult<AccessToken>> accessTokenHandler) throws IOException {
+
+        try{
+            Vertx vertx = Vertx.currentContext().owner();
+           // Vertx vertx = Vertx.vertx();
+            HttpClient httpClient = vertx.createHttpClient();
+            HttpClientRequest httpClientRequest = httpClient
+                .postAbs(url)
+                .handler(res -> {
+                    if (res.statusCode() < 500) {
+                        res.bodyHandler(new Handler<Buffer>() {
+                            @Override
+                            public void handle(Buffer buffer) {
+                                JSONObject jsonObject = new JSONObject(buffer.toString());
+    
+                                String accessToken = jsonObject.getString(AccessTokenRequest.ACCESS_TOKEN_KEY);
+                                String tokenType = jsonObject.getString(AccessTokenRequest.TOKEN_TYPE_KEY);
+                                Long expiresIn = jsonObject.getLong(AccessTokenRequest.EXPIRES_IN_KEY);
+    
+                                accessTokenHandler.handle(Future.succeededFuture(new AccessToken(accessToken, tokenType, expiresIn)));
+                            }
+                        });
+                    }
+                    else {
+                        accessTokenHandler.handle(Future.failedFuture("Error on reading keychain data."));
+                    }
+                });
+            /* Headers */
+            for(Map.Entry<String, String> entry : this.headers.entrySet())
+            {
+                httpClientRequest.putHeader(entry.getKey(), entry.getValue());
+            }
+            /* Body */
+            if (this.body != null && !this.body.isEmpty()) {
+                httpClientRequest.putHeader("Content-Length", String.valueOf(this.bodyBytes.length));
+                httpClientRequest.write(this.body);
+            }
+            /* Call HTTP Request */
+            httpClientRequest.end();
         }
-
-        /* Body */
-        if (this.body != null && !this.body.isEmpty()) {
-            con.setDoOutput(true);
-            OutputStream bodyOS = con.getOutputStream();
-            bodyOS.write(this.bodyBytes);
-            bodyOS.close();
+        catch (Exception e) {
+            StringWriter outError = new StringWriter();
+            e.printStackTrace(new PrintWriter(outError));
+            String errorString = outError.toString();
+            AccessTokenRequest.LOGGER.warn("[Keychain->AccessToken] *** ERROR ***: " + errorString);
+            accessTokenHandler.handle(Future.failedFuture("Error on reading keychain data."));
         }
-        
-        BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-        String inputLine;
-        StringBuilder response = new StringBuilder();
-
-        while ((inputLine = in.readLine()) != null)
-            response.append(inputLine);
-        in.close();
-
-        return response.toString();
-    }
-
-    public JSONObject doRequestJSON() throws IOException {
-        return new JSONObject(this.doRequest());
-    }
-
-    public AccessToken getAccessToken() throws IOException {
-        JSONObject jsonObject = this.doRequestJSON();
-
-        String accessToken = jsonObject.getString(AccessTokenRequest.ACCESS_TOKEN_KEY);
-        String tokenType = jsonObject.getString(AccessTokenRequest.TOKEN_TYPE_KEY);
-        Long expiresIn = jsonObject.getLong(AccessTokenRequest.EXPIRES_IN_KEY);
-
-        return new AccessToken(accessToken, tokenType, expiresIn);
     }
 }

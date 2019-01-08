@@ -65,16 +65,30 @@ public class AccessTokenPolicy
         if (requestKeychain == null || requestKeychain.isEmpty()) {
             policyChain.failWith(PolicyResult.failure(
                     HttpStatusCode.FORBIDDEN_403,
-                    "Couldn't find keychain data inside context."));
+                    "[Keychain->AccessToken] Couldn't find keychain data inside context."));
             return;
         }
 
         try
         {
-            AccessToken accessToken = this.getAccessToken(requestKeychain);
-            AccessTokenPolicy.LOGGER.info("Access Token: " + accessToken.getAccessToken());
-            this.injectAccessToken(request, accessToken);
-            AccessTokenPolicy.LOGGER.info("Done.");
+            JSONArray apiList = new JSONArray(requestKeychain);            
+            KeychainInterpreter interpreter = new KeychainInterpreter(apiList);
+            String url = interpreter.applyQuery(this.policyConfiguration.getUrl());
+            AccessTokenRequest accessTokenRequest = new AccessTokenRequest(url, interpreter.getHeaders(), interpreter.getBody());
+            accessTokenRequest.doRequest(res -> {
+                if (res.succeeded())
+                {
+                    AccessToken accessToken = res.result();
+                    AccessTokenPolicy.LOGGER.info("[Keychain->AccessToken] Access Token: " + accessToken.getAccessToken());
+                    this.injectAccessToken(request, accessToken);
+                    AccessTokenPolicy.LOGGER.info("[Keychain->AccessToken] Done.");
+                    policyChain.doNext(request, response);
+                }
+                else
+                {
+                    policyChain.failWith(PolicyResult.failure("[Keychain->AccessToken] Error on retrieving access token: "+res.cause().getLocalizedMessage()));
+                }
+            });
         }
         catch (JSONException e)
         {
@@ -83,14 +97,12 @@ public class AccessTokenPolicy
         }
         catch(UnsupportedEncodingException e)
         {
-            policyChain.failWith(PolicyResult.failure("Error on processing keychain data: "+e.getLocalizedMessage()));
+            policyChain.failWith(PolicyResult.failure("[Keychain->AccessToken] Error on processing keychain data: "+e.getLocalizedMessage()));
         }
         catch(IOException e)
         {
-            policyChain.failWith(PolicyResult.failure("Error on retrieving access token: "+e.getLocalizedMessage()));
+            policyChain.failWith(PolicyResult.failure("[Keychain->AccessToken] Error on retrieving access token: "+e.getLocalizedMessage()));
         }
-
-        policyChain.doNext(request,response);
     }
 
     private String lookForKeychain(ExecutionContext executionContext, Request request) 
@@ -103,16 +115,6 @@ public class AccessTokenPolicy
             keychainResponse = (String)attrib;
 
         return keychainResponse;
-    }
-
-    private AccessToken getAccessToken(String requestKeychain) throws UnsupportedEncodingException, IOException 
-    {
-        JSONArray apiList = new JSONArray(requestKeychain);            
-        KeychainInterpreter interpreter = new KeychainInterpreter(apiList);
-        String url = interpreter.applyQuery(this.policyConfiguration.getUrl());
-        String method = "POST";
-        AccessTokenRequest accessTokenRequest = new AccessTokenRequest(url, method, interpreter.getHeaders(), interpreter.getBody());
-        return accessTokenRequest.getAccessToken();
     }
 
     private void injectAccessToken(Request request, AccessToken accessToken) 
