@@ -29,7 +29,7 @@ public class KeychainInterpreter
 {
     private static final Logger LOGGER = LoggerFactory.getLogger(AccessTokenPolicy.class);
 
-    private static final String METHOD_KEY = "method";
+    private static final String METHOD_KEY = "_Gr1d_method";
     private static final String BASICAUTH_METHOD = "basicauth";
     private static final String BASICAUTH_USER_KEY = "user";
     private static final String BASICAUTH_PASSWORD_KEY = "pass";

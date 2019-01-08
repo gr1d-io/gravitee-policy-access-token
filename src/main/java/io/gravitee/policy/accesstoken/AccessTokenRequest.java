@@ -19,17 +19,12 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
-import java.util.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.activation.UnsupportedDataTypeException;
-import javax.naming.PartialResultException;
 import javax.net.ssl.HttpsURLConnection;
-import org.json.JSONArray;
 import org.json.JSONObject;
 import java.io.OutputStream;
 
