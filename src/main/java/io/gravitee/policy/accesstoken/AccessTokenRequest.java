@@ -100,6 +100,13 @@ public class AccessTokenRequest
                 httpClientRequest.putHeader("Content-Length", String.valueOf(this.bodyBytes.length));
                 httpClientRequest.write(this.body);
             }
+            httpClientRequest.exceptionHandler(e -> {
+                StringWriter outError = new StringWriter();
+                e.printStackTrace(new PrintWriter(outError));
+                String errorString = outError.toString();
+                AccessTokenRequest.LOGGER.warn("[Keychain->AccessToken] *** ERROR ***: " + errorString);
+                accessTokenHandler.handle(Future.failedFuture("Error on reading keychain data."));
+            });
             /* Call HTTP Request */
             httpClientRequest.end();
         }
