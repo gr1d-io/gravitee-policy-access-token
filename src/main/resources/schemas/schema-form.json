@@ -7,6 +7,11 @@
       "description": "URL for requesting an access token.",
       "type" : "string"
     },
+    "responseKey" : {
+      "title": "Access Token Key in response",
+      "description": "Key used in the header used by the Access Token (default: Authorization).",
+      "type" : "string"
+    },
     "headerKey" : {
       "title": "Authorization header key",
       "description": "Key used in the header used by the Access Token (default: Authorization).",

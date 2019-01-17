@@ -21,6 +21,8 @@ import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.util.*;
+
+import io.gravitee.policy.accesstoken.configuration.AccessTokenPolicyConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,31 +65,43 @@ public class AccessTokenRequest
         this.bodyBytes = body.getBytes("UTF-8");
     }
 
-    public void doRequest(Handler<AsyncResult<AccessToken>> accessTokenHandler) throws IOException {
+    public void doRequest(Handler<AsyncResult<AccessToken>> accessTokenHandler, AccessTokenPolicyConfiguration policyConfiguration) throws IOException {
 
+        AccessTokenRequest.LOGGER.warn("CALLING URL: " + url);
         try{
+
             Vertx vertx = Vertx.currentContext().owner();
            // Vertx vertx = Vertx.vertx();
             HttpClient httpClient = vertx.createHttpClient();
             HttpClientRequest httpClientRequest = httpClient
                 .postAbs(url)
                 .handler(res -> {
+                    AccessTokenRequest.LOGGER.warn("URL RESPONSE : " + res.statusCode());
                     if (res.statusCode() < 500) {
                         res.bodyHandler(new Handler<Buffer>() {
                             @Override
                             public void handle(Buffer buffer) {
+
+                                String responseKey = policyConfiguration.getResponseKey();
+                                if (responseKey == null || responseKey.isEmpty()) {
+                                    responseKey = AccessTokenRequest.ACCESS_TOKEN_KEY;
+                                }
+
                                 JSONObject jsonObject = new JSONObject(buffer.toString());
     
-                                String accessToken = jsonObject.getString(AccessTokenRequest.ACCESS_TOKEN_KEY);
+                                String accessToken = jsonObject.getString(responseKey);
                                 String tokenType = jsonObject.getString(AccessTokenRequest.TOKEN_TYPE_KEY);
                                 Long expiresIn = jsonObject.getLong(AccessTokenRequest.EXPIRES_IN_KEY);
-    
+
                                 accessTokenHandler.handle(Future.succeededFuture(new AccessToken(accessToken, tokenType, expiresIn)));
+
+
                             }
                         });
                     }
                     else {
-                        accessTokenHandler.handle(Future.failedFuture("Error on reading keychain data."));
+
+                        accessTokenHandler.handle(Future.failedFuture("Error on reading keychain data. 1->" + res.statusMessage()));
                     }
                 });
             /* Headers */
@@ -97,6 +111,8 @@ public class AccessTokenRequest
             }
             /* Body */
             if (this.body != null && !this.body.isEmpty()) {
+                AccessTokenRequest.LOGGER.warn("TESTE - 0. Body="+this.body);
+                AccessTokenRequest.LOGGER.warn("TESTE - 0. BodyLength="+String.valueOf(this.bodyBytes.length));
                 httpClientRequest.putHeader("Content-Length", String.valueOf(this.bodyBytes.length));
                 httpClientRequest.write(this.body);
             }
@@ -105,7 +121,7 @@ public class AccessTokenRequest
                 e.printStackTrace(new PrintWriter(outError));
                 String errorString = outError.toString();
                 AccessTokenRequest.LOGGER.warn("[Keychain->AccessToken] *** ERROR ***: " + errorString);
-                accessTokenHandler.handle(Future.failedFuture("Error on reading keychain data."));
+                accessTokenHandler.handle(Future.failedFuture("Error on reading keychain data. 2"));
             });
             /* Call HTTP Request */
             httpClientRequest.end();
@@ -115,7 +131,7 @@ public class AccessTokenRequest
             e.printStackTrace(new PrintWriter(outError));
             String errorString = outError.toString();
             AccessTokenRequest.LOGGER.warn("[Keychain->AccessToken] *** ERROR ***: " + errorString);
-            accessTokenHandler.handle(Future.failedFuture("Error on reading keychain data."));
+            accessTokenHandler.handle(Future.failedFuture("Error on reading keychain data. 3"));
         }
     }
 }

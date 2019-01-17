@@ -75,6 +75,8 @@ public class AccessTokenPolicy
             KeychainInterpreter interpreter = new KeychainInterpreter(apiList);
             String url = interpreter.applyQuery(this.policyConfiguration.getUrl());
             AccessTokenRequest accessTokenRequest = new AccessTokenRequest(url, interpreter.getHeaders(), interpreter.getBody());
+            LOGGER.warn("TESTE 00: URL: " + url);
+            LOGGER.warn("TESTE 00: BODY: " + interpreter.getBody());
             accessTokenRequest.doRequest(res -> {
                 if (res.succeeded())
                 {
@@ -88,7 +90,7 @@ public class AccessTokenPolicy
                 {
                     policyChain.failWith(PolicyResult.failure("[Keychain->AccessToken] Error on retrieving access token: "+res.cause().getLocalizedMessage()));
                 }
-            });
+            }, this.policyConfiguration);
         }
         catch (JSONException e)
         {

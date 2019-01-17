@@ -24,6 +24,7 @@ import io.gravitee.policy.api.PolicyConfiguration;
 public class AccessTokenPolicyConfiguration implements PolicyConfiguration {
     private String url;
     private String headerKey;
+    private String responseKey;
 
     public String getUrl() {
         return this.url;
@@ -39,6 +40,14 @@ public class AccessTokenPolicyConfiguration implements PolicyConfiguration {
 
     public void setHeaderKey(String headerKey) {
         this.headerKey = headerKey;
+    }
+
+    public String getResponseKey() {
+        return this.responseKey;
+    }
+
+    public void setHeaderRequestKey(String headerRequestKey) {
+        this.responseKey = responseKey;
     }
 
 }
