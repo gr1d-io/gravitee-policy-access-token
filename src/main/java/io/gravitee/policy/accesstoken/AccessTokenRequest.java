@@ -81,31 +81,31 @@ public class AccessTokenRequest
                         res.bodyHandler(new Handler<Buffer>() {
                             @Override
                             public void handle(Buffer buffer) {
-
+                                JSONObject jsonObject = new JSONObject(buffer.toString());
+    
                                 String responseKey = policyConfiguration.getResponseKey();
                                 if (responseKey == null || responseKey.isEmpty()) {
                                     responseKey = AccessTokenRequest.ACCESS_TOKEN_KEY;
                                 }
-
-                                JSONObject jsonObject = new JSONObject(buffer.toString());
-
-                                String tokenType;
-
-                                String accessToken = jsonObject.getString(responseKey);
-
-                                if(jsonObject.has(AccessTokenRequest.TOKEN_TYPE_KEY))
-                                    tokenType = jsonObject.getString(AccessTokenRequest.TOKEN_TYPE_KEY);
-                                else
-                                    tokenType = "Bearer";
-
-                                Long expiresIn;
-                                if(jsonObject.has(AccessTokenRequest.EXPIRES_IN_KEY))
-                                    expiresIn = jsonObject.getLong(AccessTokenRequest.EXPIRES_IN_KEY);
-                                else
-                                    expiresIn = new Long(0);
+                                String accessToken = jsonObject.has(responseKey) ? jsonObject.getString(responseKey) : "";
+                                String tokenTypeConfig = policyConfiguration.getTokenType();
+                                String tokenType = "";
+                                switch(tokenTypeConfig)
+                                {
+                                    case "NORMAL":
+                                        tokenType = "";
+                                        break;
+                                    case "BEARER":
+                                        tokenType = "Bearer";
+                                        break;
+                                    default:
+                                        tokenType = jsonObject.has(AccessTokenRequest.TOKEN_TYPE_KEY) ? jsonObject.getString(AccessTokenRequest.TOKEN_TYPE_KEY) : "";
+                                        break;
+                                }
+                                
+                                Long expiresIn = jsonObject.has(AccessTokenRequest.EXPIRES_IN_KEY) ? jsonObject.getLong(AccessTokenRequest.EXPIRES_IN_KEY) : -1;
 
                                 accessTokenHandler.handle(Future.succeededFuture(new AccessToken(accessToken, tokenType, expiresIn)));
-
                             }
                         });
                     }
@@ -121,8 +121,6 @@ public class AccessTokenRequest
             }
             /* Body */
             if (this.body != null && !this.body.isEmpty()) {
-                AccessTokenRequest.LOGGER.warn("TESTE - 0. Body="+this.body);
-                AccessTokenRequest.LOGGER.warn("TESTE - 0. BodyLength="+String.valueOf(this.bodyBytes.length));
                 httpClientRequest.putHeader("Content-Length", String.valueOf(this.bodyBytes.length));
                 httpClientRequest.write(this.body);
             }

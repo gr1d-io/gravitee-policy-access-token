@@ -25,6 +25,7 @@ public class AccessTokenPolicyConfiguration implements PolicyConfiguration {
     private String url;
     private String headerKey;
     private String responseKey;
+    private String tokenType;
 
     public String getUrl() {
         return this.url;
@@ -48,6 +49,14 @@ public class AccessTokenPolicyConfiguration implements PolicyConfiguration {
 
     public void setHeaderRequestKey(String headerRequestKey) {
         this.responseKey = responseKey;
+    }
+
+    public String getTokenType() {
+        return this.responseKey;
+    }
+
+    public void setTokenType(String tokenType) {
+        this.tokenType = tokenType;
     }
 
 }
