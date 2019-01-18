@@ -89,6 +89,10 @@ public class AccessTokenRequest
                                 }
                                 String accessToken = jsonObject.has(responseKey) ? jsonObject.getString(responseKey) : "";
                                 String tokenTypeConfig = policyConfiguration.getTokenType();
+                                if (tokenTypeConfig == null)
+                                {
+                                    tokenTypeConfig = "";
+                                }
                                 String tokenType = "";
                                 AccessTokenRequest.LOGGER.warn("[Keychain->AccessToken] tokenTypeConfig: " + tokenTypeConfig);
                                 switch(tokenTypeConfig)
