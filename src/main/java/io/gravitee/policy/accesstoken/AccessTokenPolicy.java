@@ -79,10 +79,19 @@ public class AccessTokenPolicy
                 if (res.succeeded())
                 {
                     AccessToken accessToken = res.result();
-                    AccessTokenPolicy.LOGGER.info("[Keychain->AccessToken] Access Token: " + accessToken.getAccessToken());
-                    this.injectAccessToken(request, accessToken);
-                    AccessTokenPolicy.LOGGER.info("[Keychain->AccessToken] Done.");
-                    policyChain.doNext(request, response);
+                    if (accessToken.getAccessToken() == null || accessToken.getAccessToken().isEmpty())
+                    {
+                        policyChain.failWith(PolicyResult.failure("[Keychain->AccessToken] Error on handling access token: Access token is null/empty."));
+                    }
+                    else if (this.injectAccessToken(request, accessToken))
+                    {
+                        AccessTokenPolicy.LOGGER.info("[Keychain->AccessToken] Done.");
+                        policyChain.doNext(request, response);
+                    }
+                    else
+                    {
+                        policyChain.failWith(PolicyResult.failure("[Keychain->AccessToken] Error on handling access token: Access token type not recognized."));
+                    }   
                 }
                 else
                 {
@@ -117,22 +126,33 @@ public class AccessTokenPolicy
         return keychainResponse;
     }
 
-    private void injectAccessToken(Request request, AccessToken accessToken) 
+    private Boolean injectAccessToken(Request request, AccessToken accessToken) 
     {
         String headerKey = this.policyConfiguration.getHeaderKey();
         if (headerKey == null || headerKey.isEmpty()) {
             headerKey = AccessTokenPolicy.AUTHORIZATION_KEY;
         }
+        String token = "";
         switch(accessToken.getTokenType())
         {
             case BEARER:
-                request.headers().add(headerKey, String.format("Bearer %s", accessToken.getAccessToken()));
+                token = String.format("Bearer %s", accessToken.getAccessToken());
                 break;
             case ACCESS_TOKEN:
-                request.headers().add(headerKey, accessToken.getAccessToken());
+                token = accessToken.getAccessToken();
                 break;
             default:
                 break;
         }
+        if (!token.isEmpty())
+        {
+            AccessTokenPolicy.LOGGER.info("[Keychain->AccessToken] Access Token APPLIED. => "+headerKey+":"+ token);
+            request.headers().add(headerKey, token);
+        }
+        else
+        {
+            AccessTokenPolicy.LOGGER.info("[Keychain->AccessToken] Access Token NOT APPLIED. Token type not recognized.");
+        }
+        return (!token.isEmpty());
     }
 }

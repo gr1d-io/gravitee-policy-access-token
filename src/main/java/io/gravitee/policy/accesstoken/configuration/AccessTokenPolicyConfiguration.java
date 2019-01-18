@@ -52,7 +52,7 @@ public class AccessTokenPolicyConfiguration implements PolicyConfiguration {
     }
 
     public String getTokenType() {
-        return this.responseKey;
+        return this.tokenType;
     }
 
     public void setTokenType(String tokenType) {

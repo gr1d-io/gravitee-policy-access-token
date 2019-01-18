@@ -14,7 +14,7 @@
     },
     "tokenType": {
       "title": "Access Token type",
-      "description": "Type of access token.<ul style=\"padding: 0\"><li><strong>AUTO:</strong> The type will be decided based on the response from the auth server.</li><li><strong>DEFAULT:</strong> Access token without any prefix.</li><li><strong>BEARER:</strong> Access token will be prefixed by \"Bearer\".</li></ul>",
+      "description": "Type of access token.<ul><li><strong>AUTO:</strong> The type will be decided based on the response from the auth server.</li><li><strong>DEFAULT:</strong> Access token without any prefix.</li><li><strong>BEARER:</strong> Access token will be prefixed by \"Bearer\".</li></ul>",
       "type": "string",
       "default": "AUTO",
       "enum": ["AUTO", "DEFAULT", "BEARER"]
@@ -24,11 +24,5 @@
       "description": "Key used in the header used by the Access Token (default: Authorization).",
       "type" : "string"
     }
-  },
-  "form": [
-    "select",
-    {
-
-    }
-  ]
+  }
 }

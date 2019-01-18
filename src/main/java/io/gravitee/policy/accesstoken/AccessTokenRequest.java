@@ -90,6 +90,7 @@ public class AccessTokenRequest
                                 String accessToken = jsonObject.has(responseKey) ? jsonObject.getString(responseKey) : "";
                                 String tokenTypeConfig = policyConfiguration.getTokenType();
                                 String tokenType = "";
+                                AccessTokenRequest.LOGGER.warn("[Keychain->AccessToken] tokenTypeConfig: " + tokenTypeConfig);
                                 switch(tokenTypeConfig)
                                 {
                                     case "NORMAL":
@@ -102,7 +103,7 @@ public class AccessTokenRequest
                                         tokenType = jsonObject.has(AccessTokenRequest.TOKEN_TYPE_KEY) ? jsonObject.getString(AccessTokenRequest.TOKEN_TYPE_KEY) : "";
                                         break;
                                 }
-                                
+                                AccessTokenRequest.LOGGER.warn("[Keychain->AccessToken] tokenType: " + tokenType);
                                 Long expiresIn = jsonObject.has(AccessTokenRequest.EXPIRES_IN_KEY) ? jsonObject.getLong(AccessTokenRequest.EXPIRES_IN_KEY) : -1;
 
                                 accessTokenHandler.handle(Future.succeededFuture(new AccessToken(accessToken, tokenType, expiresIn)));
