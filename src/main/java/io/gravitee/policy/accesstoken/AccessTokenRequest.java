@@ -88,13 +88,23 @@ public class AccessTokenRequest
                                 }
 
                                 JSONObject jsonObject = new JSONObject(buffer.toString());
-    
+
+                                String tokenType;
+
                                 String accessToken = jsonObject.getString(responseKey);
-                                String tokenType = jsonObject.getString(AccessTokenRequest.TOKEN_TYPE_KEY);
-                                Long expiresIn = jsonObject.getLong(AccessTokenRequest.EXPIRES_IN_KEY);
+
+                                if(jsonObject.has(AccessTokenRequest.TOKEN_TYPE_KEY))
+                                    tokenType = jsonObject.getString(AccessTokenRequest.TOKEN_TYPE_KEY);
+                                else
+                                    tokenType = "Bearer";
+
+                                Long expiresIn;
+                                if(jsonObject.has(AccessTokenRequest.EXPIRES_IN_KEY))
+                                    expiresIn = jsonObject.getLong(AccessTokenRequest.EXPIRES_IN_KEY);
+                                else
+                                    expiresIn = new Long(0);
 
                                 accessTokenHandler.handle(Future.succeededFuture(new AccessToken(accessToken, tokenType, expiresIn)));
-
 
                             }
                         });

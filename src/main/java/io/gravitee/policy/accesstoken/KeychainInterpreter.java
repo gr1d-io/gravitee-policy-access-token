@@ -102,13 +102,13 @@ public class KeychainInterpreter
                 this.headers.put(key, apiData.getString(key));
             }
         }
-        KeychainInterpreter.LOGGER.info(String.format("[Keychain->AccessToken] ADD HEADERS."));
+        KeychainInterpreter.LOGGER.warn(String.format("[Keychain->AccessToken] ADD HEADERS."));
     }
 
     private void addBody(JSONObject apiData)
     {
         this.body = apiData.getString(KeychainInterpreter.BODY_KEY);
-        KeychainInterpreter.LOGGER.info(String.format("[Keychain->AccessToken] ADD BODY: %s", this.getBody()));
+        KeychainInterpreter.LOGGER.warn(String.format("[Keychain->AccessToken] ADD BODY: %s", this.getBody()));
     }
 
     private void addQuery(JSONObject apiData)
