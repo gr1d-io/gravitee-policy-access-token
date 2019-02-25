@@ -44,6 +44,7 @@ public class AccessTokenPolicy
 
     static final String KEYCHAIN_KEY = "keychain";
     static final String AUTHORIZATION_KEY = "Authorization";
+    static final String ACCESS_TOKEN_CONTEXT_KEY = "access_token";
     
     /**
      * Policy configuration
@@ -79,6 +80,7 @@ public class AccessTokenPolicy
                 if (res.succeeded())
                 {
                     AccessToken accessToken = res.result();
+                    executionContext.setAttribute(ACCESS_TOKEN_CONTEXT_KEY, accessToken.getRawData());
                     if (accessToken.getAccessToken() == null || accessToken.getAccessToken().isEmpty())
                     {
                         policyChain.failWith(PolicyResult.failure("[Keychain->AccessToken] Error on handling access token: Access token is null/empty."));

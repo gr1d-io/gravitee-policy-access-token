@@ -2,6 +2,13 @@
   "type" : "object",
   "id" : "urn:jsonschema:io:gravitee:policy:keychain:configuration:AccessTokenPolicyConfiguration",
   "properties" : {
+    "httpMethod" : {
+      "title": "Access Token URL",
+      "description": "URL for requesting an access token.",
+      "type" : "string",
+      "default": "POST",
+      "enum": ["POST", "GET"]
+    },
     "url" : {
       "title": "Access Token URL",
       "description": "URL for requesting an access token.",

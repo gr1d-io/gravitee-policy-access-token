@@ -16,6 +16,7 @@
 package io.gravitee.policy.accesstoken.configuration;
 
 import io.gravitee.policy.api.PolicyConfiguration;
+import io.vertx.core.http.HttpMethod;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -26,6 +27,7 @@ public class AccessTokenPolicyConfiguration implements PolicyConfiguration {
     private String headerKey;
     private String responseKey;
     private String tokenType;
+    private HttpMethod httpMethod;
 
     public String getUrl() {
         return this.url;
@@ -57,6 +59,14 @@ public class AccessTokenPolicyConfiguration implements PolicyConfiguration {
 
     public void setTokenType(String tokenType) {
         this.tokenType = tokenType;
+    }
+
+    public HttpMethod getHttpMethod() {
+        return this.httpMethod;
+    }
+
+    public void setHttpMethod(HttpMethod httpMethod) {
+        this.httpMethod = httpMethod;
     }
 
 }

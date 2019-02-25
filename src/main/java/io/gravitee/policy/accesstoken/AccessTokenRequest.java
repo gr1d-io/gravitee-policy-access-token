@@ -34,6 +34,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientRequest;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -67,21 +68,26 @@ public class AccessTokenRequest
 
     public void doRequest(Handler<AsyncResult<AccessToken>> accessTokenHandler, AccessTokenPolicyConfiguration policyConfiguration) throws IOException {
 
-        AccessTokenRequest.LOGGER.warn("CALLING URL: " + url);
         try{
-
             Vertx vertx = Vertx.currentContext().owner();
            // Vertx vertx = Vertx.vertx();
             HttpClient httpClient = vertx.createHttpClient();
+            HttpMethod method = HttpMethod.POST;
+            if (policyConfiguration.getHttpMethod() != null) {
+                method = policyConfiguration.getHttpMethod();
+            }
+            AccessTokenRequest.LOGGER.warn("CALLING URL: " + method + " " + url);
             HttpClientRequest httpClientRequest = httpClient
-                .postAbs(url)
+                .requestAbs(method, url)
                 .handler(res -> {
                     AccessTokenRequest.LOGGER.warn("URL RESPONSE : " + res.statusCode());
                     if (res.statusCode() < 500) {
                         res.bodyHandler(new Handler<Buffer>() {
                             @Override
                             public void handle(Buffer buffer) {
-                                JSONObject jsonObject = new JSONObject(buffer.toString());
+                                String rawData = buffer.toString();
+                                AccessTokenRequest.LOGGER.warn("ACCESS TOKEN RESPONSE : " + rawData);
+                                JSONObject jsonObject = new JSONObject(rawData);
     
                                 String responseKey = policyConfiguration.getResponseKey();
                                 if (responseKey == null || responseKey.isEmpty()) {
@@ -110,12 +116,11 @@ public class AccessTokenRequest
                                 AccessTokenRequest.LOGGER.warn("[Keychain->AccessToken] tokenType: " + tokenType);
                                 Long expiresIn = jsonObject.has(AccessTokenRequest.EXPIRES_IN_KEY) ? jsonObject.getLong(AccessTokenRequest.EXPIRES_IN_KEY) : -1;
 
-                                accessTokenHandler.handle(Future.succeededFuture(new AccessToken(accessToken, tokenType, expiresIn)));
+                                accessTokenHandler.handle(Future.succeededFuture(new AccessToken(accessToken, tokenType, expiresIn, rawData)));
                             }
                         });
                     }
                     else {
-
                         accessTokenHandler.handle(Future.failedFuture("Error on reading keychain data. 1->" + res.statusMessage()));
                     }
                 });

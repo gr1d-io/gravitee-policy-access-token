@@ -22,6 +22,7 @@ public class AccessToken
     private String accessToken;
     private AccessTokenTypeEnum tokenType;
     private LocalDateTime expiresIn;
+    private String rawData;
 
     public String getAccessToken() { return this.accessToken; }
     public void setAccesToken(String value) { this.accessToken = value; }
@@ -44,12 +45,15 @@ public class AccessToken
     public LocalDateTime getExpiresIn() { return this.expiresIn; }
     public void setExpiresIn(LocalDateTime value) { this.expiresIn = value; }
     public void setExpiresIn(Long value) { this.expiresIn = LocalDateTime.now().plusSeconds(value); }
+    public String getRawData() { return this.rawData; }
+    public void setRawData(String rawData) { this.rawData = rawData; }
 
-    public AccessToken(String accessToken, String tokenType, Long expiresIn)
+    public AccessToken(String accessToken, String tokenType, Long expiresIn, String rawData)
     {
         this.setAccesToken(accessToken);
         this.setTokenType(tokenType);
         this.setExpiresIn(expiresIn);
+        this.setRawData(rawData);
     }
 }
 
