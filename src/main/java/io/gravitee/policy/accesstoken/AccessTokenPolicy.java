@@ -20,6 +20,7 @@ import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.policy.api.PolicyChain;
+import io.gravitee.policy.api.PolicyConfiguration;
 import io.gravitee.policy.api.PolicyResult;
 import io.gravitee.policy.api.annotations.OnRequest;
 import io.gravitee.policy.accesstoken.configuration.AccessTokenPolicyConfiguration;
@@ -51,9 +52,9 @@ public class AccessTokenPolicy
      */
     private final AccessTokenPolicyConfiguration policyConfiguration;
 
-    public AccessTokenPolicy(AccessTokenPolicyConfiguration policyConfiguration) 
+    public AccessTokenPolicy(PolicyConfiguration policyConfiguration) 
     {
-        this.policyConfiguration = policyConfiguration;
+        this.policyConfiguration = (AccessTokenPolicyConfiguration)policyConfiguration;
     }
 
     @OnRequest

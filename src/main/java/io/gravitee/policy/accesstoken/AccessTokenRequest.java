@@ -76,17 +76,17 @@ public class AccessTokenRequest
             if (policyConfiguration.getHttpMethod() != null) {
                 method = policyConfiguration.getHttpMethod();
             }
-            AccessTokenRequest.LOGGER.warn("CALLING URL: " + method + " " + url);
+            AccessTokenRequest.LOGGER.warn("[Keychain->AccessToken] CALLING URL: " + method + " " + url);
             HttpClientRequest httpClientRequest = httpClient
                 .requestAbs(method, url)
                 .handler(res -> {
-                    AccessTokenRequest.LOGGER.warn("URL RESPONSE : " + res.statusCode());
+                    AccessTokenRequest.LOGGER.warn("[Keychain->AccessToken] URL RESPONSE : " + res.statusCode());
                     if (res.statusCode() < 500) {
                         res.bodyHandler(new Handler<Buffer>() {
                             @Override
                             public void handle(Buffer buffer) {
                                 String rawData = buffer.toString();
-                                AccessTokenRequest.LOGGER.warn("ACCESS TOKEN RESPONSE : " + rawData);
+                                AccessTokenRequest.LOGGER.warn("[Keychain->AccessToken] ACCESS TOKEN RESPONSE : " + rawData);
                                 JSONObject jsonObject = new JSONObject(rawData);
     
                                 String responseKey = policyConfiguration.getResponseKey();
@@ -121,7 +121,7 @@ public class AccessTokenRequest
                         });
                     }
                     else {
-                        accessTokenHandler.handle(Future.failedFuture("Error on reading keychain data. 1->" + res.statusMessage()));
+                        accessTokenHandler.handle(Future.failedFuture("[Keychain->AccessToken] Error on reading keychain data. 1->" + res.statusMessage()));
                     }
                 });
             /* Headers */
